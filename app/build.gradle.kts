@@ -1,4 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+import org.gradle.api.JavaVersion
 
 plugins {
     // Plugin for Android application development
@@ -30,6 +31,10 @@ android {
         // Use support library for vector drawables
         vectorDrawables {
             useSupportLibrary = true
+        }
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+                    targetCompatibility = JavaVersion.VERSION_1_8
         }
     }
 
@@ -79,6 +84,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.9.0")
     // Lifecycle runtime library for KTX
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    // Lifecycle viewmodel and jetpackcompose ui
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     // Activity library for Jetpack Compose
     implementation("androidx.activity:activity-compose:1.7.0")
     // Compose BOM (Bill of Materials) to manage Compose library versions
@@ -108,5 +115,11 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Add new dependencies here as your app grows
-    // implementation("new.dependency:version")
+    // Retrofit and networking
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Convertor parser
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Java lib for json to objects or objects to java
+    implementation("com.google.code.gson:gson:2.9.0")
+
 }
