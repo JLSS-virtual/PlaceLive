@@ -2,7 +2,7 @@ package com.jlss.placelive.model
 
 data class ResponseListDto<T>(
     val success: Boolean,
-    val data: List<T>? = emptyList(),  // ✅ Default to empty list
+    val data: List<T> = emptyList(),  // ✅ Default to empty list
     val paginatedDto: PaginatedDto? = null,  // ✅ Nullable, prevents crashes
     val errorCode: String? = null,
     val errorMessage: String? = null

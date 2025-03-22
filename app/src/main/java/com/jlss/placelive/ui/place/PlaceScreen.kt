@@ -22,7 +22,7 @@ fun PlaceScreen() {
 
 
     val retrofitClient = remember { RetrofitClient(baseUrl) }  // ✅ Instance created dynamically
-    val viewModel: PlaceViewModel = viewModel(factory = PlaceViewModel.Factory(retrofitClient.createApiService()))
+    val viewModel: PlaceViewModel = viewModel(factory = PlaceViewModel.Factory(retrofitClient.createPlaceApi()))
 
     val placesList by viewModel.places.collectAsState(emptyList())
     val coroutineScope = rememberCoroutineScope()
@@ -81,7 +81,6 @@ fun PlaceScreen() {
                     description = description,
                     latitude = latitude.toDoubleOrNull() ?: 0.0,
                     longitude = longitude.toDoubleOrNull() ?: 0.0,
-                    radius = radius.toDoubleOrNull() ?: 0.0
                 )
 
                 coroutineScope.launch { viewModel.addPlace(newPlace) }
