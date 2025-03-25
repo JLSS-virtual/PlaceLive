@@ -3,54 +3,58 @@ package com.jlss.placelive.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.jlss.placelive.data.api.ApiService
+import com.jlss.placelive.data.api.PlaceApi
 import com.jlss.placelive.model.Place
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class PlaceViewModel(private val apiService: ApiService) : ViewModel() {
+class PlaceViewModel(private val apiService: PlaceApi) : ViewModel() {
 
-    // Holds the current list of places
+    // Holds the current list of places.
     private val _places = MutableStateFlow<List<Place>>(emptyList())
     val places: StateFlow<List<Place>> get() = _places
 
-    // Load places as soon as the ViewModel is created
+    // Load places when the ViewModel is created.
     init {
         fetchPlaces()
     }
 
     /**
-     * Add a new place by calling the API.
-     * If successful, we update our local list to include the new place.
+     * Adds a new place via the API.
+     * On success, appends the newly created place to the list.
      */
-    fun addPlace(place: Place) {
-        viewModelScope.launch {
-            try {
-                val response = apiService.addPlace(place)
-                if (response.isSuccessful && response.body() != null) {
-                    // The server returns the newly created place, so we append it to our list
-                    _places.value = _places.value + response.body()!!
-                } else {
-                    println("Add place failed: ${response.errorBody()?.string()}")
+    // In PlaceViewModel.kt
+    suspend fun addPlace(place: Place): Long? { // Return generated placeId
+        return try {
+            val response = apiService.addPlace(place)
+            if (response.isSuccessful) {
+                val newPlace = response.body()?.data
+                newPlace?.let {
+                    _places.value = _places.value + it
+                    it.id // Return the server-generated ID
                 }
-            } catch (e: Exception) {
-                println("Error adding place: ${e.message}")
+            } else {
+                println("Add place failed: ${response.errorBody()?.string()}")
+                null
             }
+        } catch (e: Exception) {
+            println("Error adding place: ${e.message}")
+            null
         }
     }
 
     /**
-     * Delete a place by ID from the server.
-     * If successful, we remove it from our local list.
+     * Deletes a place by its ID via the API.
+     * On success, removes it from the local list.
      */
     fun deletePlace(placeId: Int) {
         viewModelScope.launch {
             try {
-                val response = apiService.deletePlace(placeId)
+                val response = apiService.deletePlace(placeId) // Response<ResponseDto<String>>
                 if (response.isSuccessful) {
-                    // Filter out the deleted place from our local list
-                    _places.value = _places.value.filter { it.placeId?.toInt() != placeId }
+                    // Filter out the deleted place from the list.
+                    _places.value = _places.value.filter { it.id?.toInt() != placeId }
                 } else {
                     println("Delete place failed: ${response.errorBody()?.string()}")
                 }
@@ -61,13 +65,18 @@ class PlaceViewModel(private val apiService: ApiService) : ViewModel() {
     }
 
     /**
-     * Fetches the latest list of places from the server and updates our local list.
+     * Fetches the latest list of places from the API and updates the local list.
      */
     private fun fetchPlaces() {
         viewModelScope.launch {
             try {
-                val response = apiService.getPlaces()
-                _places.value = response.data!!
+                val response = apiService.getPlaces() // Response<ResponseListDto<Place>>
+                if (response.isSuccessful) {
+                    val placesList = response.body()?.data ?: emptyList()
+                    _places.value = placesList as List<Place>
+                } else {
+                    println("Error fetching places: ${response.errorBody()?.string()}")
+                }
             } catch (e: Exception) {
                 println("Error fetching places: ${e.message}")
             }
@@ -75,10 +84,10 @@ class PlaceViewModel(private val apiService: ApiService) : ViewModel() {
     }
 
     /**
-     * A custom Factory so we can pass `ApiService` when creating the ViewModel.
+     * Custom Factory to pass PlaceApi when creating the ViewModel.
      */
     companion object {
-        fun Factory(apiService: ApiService): ViewModelProvider.Factory {
+        fun Factory(apiService: PlaceApi): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     if (modelClass.isAssignableFrom(PlaceViewModel::class.java)) {
