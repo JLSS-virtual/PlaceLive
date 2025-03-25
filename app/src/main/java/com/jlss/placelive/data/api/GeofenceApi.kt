@@ -14,9 +14,11 @@ interface GeofenceApi {
 
     @GET("geofence")
     suspend fun getGeofence(): Response<ResponseListDto<Geofence>>
+    @GET("geofence/place/{placeId}")
+    suspend fun getGeofencesByPlaceId(@Path("placeId") placeId: Long): Response<ResponseListDto<Geofence>>
     //  Wrapped inside Response<ResponseListDto<Place>> to match backend DTO
     @GET("geofence/{id}")
-    suspend fun getGeofenceById(): Response<ResponseDto<Geofence>>
+    suspend fun getGeofenceById(@Path("id") geofenceId: Long): Response<ResponseDto<Geofence>>
     @POST("geofence")
     suspend fun addGeofence(@Body geofence: Geofence): Response<ResponseDto<Geofence>>
     @POST("geofence")

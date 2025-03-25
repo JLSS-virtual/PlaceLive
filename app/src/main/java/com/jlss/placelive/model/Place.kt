@@ -1,10 +1,11 @@
 package com.jlss.placelive.model
 
 data class Place(
-    val placeId: Int? = null,
-    val name: String,              // Name input from UI
-    val description: String,       // Description input from UI
-    val latitude: Double,          // Latitude input
-    val longitude: Double,         // Longitude input
-
+    val id: Long? = null,
+    val name: String,
+    val description: String,
+    val regionId: Long? = null,
+    val ownerId: Long,
+    val type: String? = null,
+    val tags: List<String> = emptyList()
 )

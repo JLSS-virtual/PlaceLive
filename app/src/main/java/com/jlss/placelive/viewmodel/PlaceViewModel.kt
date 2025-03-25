@@ -24,21 +24,23 @@ class PlaceViewModel(private val apiService: PlaceApi) : ViewModel() {
      * Adds a new place via the API.
      * On success, appends the newly created place to the list.
      */
-    fun addPlace(place: Place) {
-        viewModelScope.launch {
-            try {
-                val response = apiService.addPlace(place) // Response<ResponseDto<Place>>
-                if (response.isSuccessful) {
-                    val newPlace = response.body()?.data
-                    if (newPlace != null) {
-                        _places.value = _places.value + newPlace
-                    }
-                } else {
-                    println("Add place failed: ${response.errorBody()?.string()}")
+    // In PlaceViewModel.kt
+    suspend fun addPlace(place: Place): Long? { // Return generated placeId
+        return try {
+            val response = apiService.addPlace(place)
+            if (response.isSuccessful) {
+                val newPlace = response.body()?.data
+                newPlace?.let {
+                    _places.value = _places.value + it
+                    it.id // Return the server-generated ID
                 }
-            } catch (e: Exception) {
-                println("Error adding place: ${e.message}")
+            } else {
+                println("Add place failed: ${response.errorBody()?.string()}")
+                null
             }
+        } catch (e: Exception) {
+            println("Error adding place: ${e.message}")
+            null
         }
     }
 
@@ -52,7 +54,7 @@ class PlaceViewModel(private val apiService: PlaceApi) : ViewModel() {
                 val response = apiService.deletePlace(placeId) // Response<ResponseDto<String>>
                 if (response.isSuccessful) {
                     // Filter out the deleted place from the list.
-                    _places.value = _places.value.filter { it.placeId != placeId }
+                    _places.value = _places.value.filter { it.id?.toInt() != placeId }
                 } else {
                     println("Delete place failed: ${response.errorBody()?.string()}")
                 }

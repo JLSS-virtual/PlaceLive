@@ -38,6 +38,9 @@ data class Geofence(
     val latitude: Double = 0.0,  // Added latitude
 
     @ColumnInfo(name = "longitude")
-    val longitude: Double = 0.0
+    val longitude: Double = 0.0,
                             // Added longitude
+    @ColumnInfo(name="place_id")
+    val placeId: Long
     )
+
