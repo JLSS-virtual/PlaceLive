@@ -6,12 +6,13 @@ plugins {
 
 android {
     namespace = "com.jlss.placelive"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.jlss.placelive"
         minSdk = 26
-        targetSdk = 34
+        //noinspection EditedTargetSdkVersion
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -68,7 +69,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended") // Auto-versioned via BOM
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.work:work-runtime-ktx:2.10.0") // Auto-versioned via BOM
 
     // Testing
     testImplementation("junit:junit:4.13.2")
@@ -82,7 +84,6 @@ dependencies {
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.google.code.gson:gson:2.9.0")
 
     // Database
     implementation("androidx.room:room-runtime:2.6.1")
@@ -94,6 +95,25 @@ dependencies {
 
     // prefernceces and daatasource
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // WebSocket (OkHttp or Java-WebSocket for STOMP)
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+// Coroutines (For Async WebSocket Handling)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+// GSON (For JSON Parsing)
+    implementation("com.google.code.gson:gson:2.10.1")
+
+// Java-WebSocket (ONLY if you need STOMP)
+    implementation("org.java-websocket:Java-WebSocket:1.5.3")
+
+    // gif and animaation suport.
+    implementation("com.airbnb.android:lottie-compose:6.0.0")
+
+
 
 
 }

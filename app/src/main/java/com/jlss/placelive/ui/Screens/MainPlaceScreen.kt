@@ -40,13 +40,13 @@ fun MainTabsScreen(
         when (selectedTab) {
             0 -> PlaceScreen(
                 userId = userId,
-                navigateToGeofenceScreen = { placeId ->
-                    navController.navigate(Screen.GeofenceScreen.createRoute(placeId))
+                navigateToGeofenceScreen = { id ->
+                    navController.navigate(Screen.GeofenceScreen.createRoute(id))
                 }
             )
             1 -> GeofenceListScreen(
-                navigateToGeofenceDetail = { geofenceId ->
-                    navController.navigate(Screen.GeofenceDetailScreen.createRoute(geofenceId))
+                navigateToGeofenceDetail = { id ->
+                    navController.navigate(Screen.GeofenceDetailScreen.createRoute(id))
                 }
             )
         }

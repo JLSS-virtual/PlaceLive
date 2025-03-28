@@ -17,8 +17,8 @@ class GeofenceRepository(private val geofenceDao: GeofenceDao) {
         return geofenceDao.getAllGeofences()
     }
 
-    suspend fun removeGeofence(geofence: Geofence) {
-        geofenceDao.deleteGeofence(geofence)
+    suspend fun removeGeofence(geofenceId: Int) {
+        geofenceDao.deleteGeofence(geofenceId)
     }
 
     suspend fun clearGeofences() {

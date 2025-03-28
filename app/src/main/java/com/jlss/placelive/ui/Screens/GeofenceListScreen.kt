@@ -10,25 +10,40 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jlss.placelive.data.api.RetrofitClient
+import com.jlss.placelive.database.DatabaseInstance
+import com.jlss.placelive.repository.GeofenceRepository
+import com.jlss.placelive.utility.NetworkUtil
 import com.jlss.placelive.viewmodel.GeofenceViewModel
 
-// GeofenceListScreen.kt
 @Composable
 fun GeofenceListScreen(
-    viewModel: GeofenceViewModel = viewModel( // Add proper initialization
-        factory = GeofenceViewModel.Factory(
-            RetrofitClient().createGeofenceApi()
-        )
-    ),
     navigateToGeofenceDetail: (Long) -> Unit
 ) {
-    viewModel.fetchGeofences()
+    val context = LocalContext.current
+    val retrofitClient = remember { RetrofitClient() }
+    val networkUtil = remember { NetworkUtil(context) }
+    val viewModel: GeofenceViewModel = viewModel(
+        factory = GeofenceViewModel.Factory(
+            apiService = retrofitClient.createGeofenceApi(),
+            repository = GeofenceRepository(DatabaseInstance.getDatabase(context).geofenceDao()),
+            networkUtil = networkUtil
+        )
+    )
+
+    // Trigger geofence fetching when screen loads
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllGeofence()
+    }
+
     val geofences by viewModel.geofences.collectAsState(emptyList())
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {

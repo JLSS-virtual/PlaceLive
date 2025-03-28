@@ -10,6 +10,9 @@ data class Geofence(
     @ColumnInfo(name = "geofence_id")
     val geofenceId: Long = 0,
 
+    @ColumnInfo(name="place_id")
+    val placeId: Long,
+
     @ColumnInfo(name = "radius")
     val radius: Double = 0.0,
 
@@ -39,8 +42,9 @@ data class Geofence(
 
     @ColumnInfo(name = "longitude")
     val longitude: Double = 0.0,
-                            // Added longitude
-    @ColumnInfo(name="place_id")
-    val placeId: Long
+
+    @ColumnInfo(name = "last_synced_at")
+    var lastSyncedAt: Long? = null
+
     )
 

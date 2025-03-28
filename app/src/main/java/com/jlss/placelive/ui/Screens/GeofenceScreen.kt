@@ -7,19 +7,30 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jlss.placelive.data.api.RetrofitClient
+import com.jlss.placelive.database.DatabaseInstance
 import com.jlss.placelive.model.Geofence
+import com.jlss.placelive.repository.GeofenceRepository
+import com.jlss.placelive.utility.NetworkUtil
 import com.jlss.placelive.viewmodel.GeofenceViewModel
+
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeofenceScreen(placeId: Long) {
+    val context = LocalContext.current
     val retrofitClient = remember { RetrofitClient() }
+    val networkUtil = remember { NetworkUtil(context) }
     val viewModel: GeofenceViewModel = viewModel(
-        factory = GeofenceViewModel.Factory(retrofitClient.createGeofenceApi())
+        factory = GeofenceViewModel.Factory(
+            retrofitClient.createGeofenceApi(),
+            GeofenceRepository(DatabaseInstance.getDatabase(context).geofenceDao()),
+            networkUtil
+        )
     )
 
     // Fetch geofences when screen loads or placeId changes
@@ -73,7 +84,7 @@ fun GeofenceScreen(placeId: Long) {
                 )
 
                 coroutineScope.launch {
-                    viewModel.addGeofence(newGeofence)
+                    viewModel.addGeofence(newGeofence,context)
                     // Reset form after successful addition
                     resetForm(
                         { latitude = it },
@@ -97,10 +108,13 @@ fun GeofenceScreen(placeId: Long) {
         // Geofences List
         GeofenceList(
             geofences = geofences,
-            onDelete = { viewModel.deleteGeofence(it) }
+            onDelete = { viewModel.deleteGeofence(it,context) }
         )
     }
 }
+
+// Rest of the composable functions remain the same as in your original code
+// (GeofenceInputForm, GeofenceList, GeofenceListItem, createGeofence, resetForm)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

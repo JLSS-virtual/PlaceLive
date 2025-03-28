@@ -22,7 +22,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         Screen.Home to Icons.Filled.Home,
         Screen.MainPlace to Icons.Filled.Place,
         Screen.Messages to Icons.Filled.Message,
-        Screen.Events to Icons.Filled.Event,
+//        Screen.Events to Icons.Filled.Event,
         Screen.Profile to Icons.Filled.Person
     )
 
