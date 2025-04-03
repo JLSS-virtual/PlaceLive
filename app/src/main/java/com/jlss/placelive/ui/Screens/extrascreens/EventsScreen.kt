@@ -1,4 +1,4 @@
-package com.jlss.placelive.ui.Screens
+package com.jlss.placelive.ui.Screens.extrascreens
 
 
 import androidx.compose.material3.Text

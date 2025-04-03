@@ -1,112 +1,85 @@
 package com.jlss.placelive
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
+import androidx.core.content.ContextCompat
+import com.jlss.placelive.data.api.RetrofitClient
 import com.jlss.placelive.navigation.AppNavigation
+import com.jlss.placelive.repository.ContactsRepository
 import com.jlss.placelive.ui.theme.PlaceLiveTheme
 import com.jlss.placelive.ui.theme.ThemePreferenceManager
-import com.jlss.placelive.database.DatabaseInstance
-import com.jlss.placelive.websocket.WebSocketManager
+import com.jlss.placelive.utility.UserPreferences
+import com.jlss.placelive.viewmodel.ContactsViewModel
 
-/**
- * ## MainActivity - The entry point of the PlaceLive App
- * ---
- * **Essence of this class:**
- * - It sets up the user interface and manages the app’s **theme preferences**.
- * - It initializes **WebSocketManager** to handle **real-time updates**.
- * - It ensures that geofencing data is **synchronized** in the background.
- * - Uses **Jetpack Compose** for building UI.
- * - Uses **Kotlin Coroutines & Flow** for asynchronous operations.
- */
 class MainActivity : ComponentActivity() {
 
-    // Object for managing theme preferences (Light Mode / Dark Mode)
     private lateinit var themePreferenceManager: ThemePreferenceManager
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
 
-    // WebSocketManager handles real-time location tracking and updates
-    private lateinit var webSocketManager: WebSocketManager
+    // Instantiate the ContactsViewModel using the singleton factory.
+    private val contactsViewModel: ContactsViewModel by viewModels {
+        ContactsViewModel.Factory(
+            RetrofitClient().createUserApi(),
+            ContactsRepository(applicationContext)
+        )
+    }
 
-    /**
-     * ## onCreate - Lifecycle method called when activity is first created
-     * ---
-     * **Core Logic:**
-     * - Initializes necessary managers (`themePreferenceManager`, `WebSocketManager`).
-     * - Loads saved theme preferences asynchronously.
-     * - Starts WebSocket connection for real-time updates.
-     * - Sets up UI using **Jetpack Compose**.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Step 1: Initialize ThemePreferenceManager to manage dark/light mode
         themePreferenceManager = ThemePreferenceManager(this)
+        scheduleGeofenceSync(this) // Ensure this function is defined appropriately
 
-        // Step 2: Start background synchronization for geofence updates
-        scheduleGeofenceSync(this)
+        // Initialize the permission launcher for READ_CONTACTS.
+        requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                fetchContacts()
+            } else {
+                Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show()
+            }
+        }
 
-        // Step 3: Initialize WebSocket for real-time data streaming
-        webSocketManager = WebSocketManager.getInstance(this)
-        webSocketManager.connect() // Establish WebSocket connection
+        // Check and request contacts permission.
+        checkContactsPermission()
 
-        /**
-         * ## UI Initialization using Jetpack Compose
-         * ---
-         * - Uses **remember** and **LaunchedEffect** to maintain and observe theme settings.
-         * - **AppNavigation** is the core navigation component that handles screen transitions.
-         */
         setContent {
-            // Variable to hold the current theme state (dark/light mode)
             var darkMode by remember { mutableStateOf(false) }
+            var isLoggedIn by remember { mutableStateOf(UserPreferences.isUserLoggedIn(this)) }
 
-            // Load saved theme preference asynchronously
-            LaunchedEffect(Unit) {
-                darkMode =  themePreferenceManager.isDarkMode.first() // Fetch theme from storage
-            }
-
-            // Observe theme changes and update UI accordingly
-            LaunchedEffect(Unit) {
-                themePreferenceManager.isDarkMode.collectLatest { newMode ->
-                    darkMode = newMode
-                }
-            }
-
-            // Apply theme and initialize the app's main UI
             PlaceLiveTheme(isDarkMode = darkMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    AppNavigation(
-                        toggleTheme = { newMode: Boolean ->
-                            if (newMode != darkMode) {
-                                darkMode = newMode
-                                lifecycleScope.launch {
-                                    themePreferenceManager.saveThemePreference(newMode)
-                                }
-                            }
-                        },
-                        isDarkMode = darkMode
-                    )
+                    AppNavigation(isLoggedIn = isLoggedIn)
                 }
             }
         }
     }
 
-    /**
-     * ## onDestroy - Lifecycle method called before activity is destroyed
-     * ---
-     * **Core Logic:**
-     * - Ensures WebSocket connection is properly closed to prevent memory leaks.
-     * - Called automatically when the user exits the app or activity is killed.
-     */
-    override fun onDestroy() {
-        super.onDestroy()
-        webSocketManager.disconnect() // Safely close WebSocket connection
+    // Check the READ_CONTACTS permission using the new Activity Result API.
+    private fun checkContactsPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            fetchContacts()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
+
+    // Fetch contacts using the ViewModel.
+    private fun fetchContacts() {
+        contactsViewModel.fetchContacts(this)
     }
 }

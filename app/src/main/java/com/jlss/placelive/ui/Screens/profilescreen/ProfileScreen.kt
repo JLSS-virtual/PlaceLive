@@ -1,4 +1,4 @@
-package com.jlss.placelive.ui.Screens
+package com.jlss.placelive.ui.Screens.profilescreen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text

@@ -25,6 +25,12 @@ package com.example.placelive.ui.navigation
  */
 sealed class Screen(val route: String, val title: String? = null) {
 
+    object WelcomeScreen : Screen("welcome_screen", "Welcome")
+    object RegistrationScreen : Screen("registration_screen","Register")
+    object ContactListScreen : Screen("contact_list_screen","Suggestions")
+
+    object LogOutScreen : Screen("log_out_screen", "LogOut")
+    object LoginScreen : Screen("login_screen", "Login")
     // 🔹 **Bottom Navigation Screens** (Static)
     object Home : Screen("home", "Home")
     object Profile : Screen("profile", "Friend Circle") // ✅ Renamed for clarity
@@ -61,4 +67,12 @@ sealed class Screen(val route: String, val title: String? = null) {
     object GeofenceDetailScreen : Screen("geofence_detail_screen/{geofenceId}") {
         fun createRoute(geofenceId: Long) = "geofence_detail_screen/$geofenceId"
     }
+
+
+    object PlaceListScreen : Screen("place_list_screen/{userId}") {
+        fun createRoute(userId: Long) = "place_list_screen/$userId"
+    }
+
+
+
 }

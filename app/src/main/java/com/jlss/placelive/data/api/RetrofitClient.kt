@@ -36,7 +36,7 @@ class RetrofitClient() {
      * - Change this URL if the backend server location changes.
      */
     val baseUrl =
-        "http://rnbaz-2401-4900-51f1-8428-6967-58a-23b9-1824.a.free.pinggy.link/placelive-geofencing/v1/api/"
+        "https://46ebfadc4ffaaa289ae8975a2bcbc9b3.serveo.net/placelive-geofencing/v1/api/"
 
     /**
      * ## createPlaceApi - Creates an instance of `PlaceApi`
@@ -68,5 +68,12 @@ class RetrofitClient() {
             .addConverterFactory(GsonConverterFactory.create()) // Add JSON converter
             .build()
             .create(GeofenceApi::class.java) // Create API instance
+    }
+    fun createUserApi(): UserApi {
+        return Retrofit.Builder()
+            .baseUrl("https://c9401df7ea7d7de63b7b4eb4f940a00c.serveo.net/placelive-user-service/v1/api/") // Set base URL
+            .addConverterFactory(GsonConverterFactory.create()) // Add JSON converter
+            .build()
+            .create(UserApi::class.java) // Create API instance
     }
 }

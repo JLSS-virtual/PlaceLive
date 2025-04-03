@@ -4,55 +4,55 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.jlss.placelive.dao.GeofenceDao
+import com.jlss.placelive.dao.UserDao
 import com.jlss.placelive.model.Geofence
+import com.jlss.placelive.model.User
+import com.jlss.placelive.model.UserRegion
+import com.jlss.placelive.utility.ListConverter
+import com.jlss.placelive.utility.UserRegionConverter
 
-/**
- * **AppDatabase** - Centralized Room Database for local data storage.
- *
- * ## **Purpose**
- * - Provides a **singleton database instance** for managing geofences.
- * - Ensures **thread-safe access** to the Room database.
- * - Acts as an abstraction layer for database operations.
- *
- * ## **Tech Stack**
- * - **Room Database** for persistent local storage.
- * - **Singleton Pattern** for optimized memory usage.
- * - **Kotlin Coroutines** for efficient async database queries.
- */
-@Database(entities = [Geofence::class], version = 1, exportSchema = false)
+@Database(
+    entities = [
+        Geofence::class,
+        User::class,          // Added User entity
+        UserRegion::class     // Added UserRegion entity
+    ],
+    version = 4,  // Incremented version
+    exportSchema = false
+)
+@TypeConverters(
+    ListConverter::class,
+    UserRegionConverter::class
+)
 abstract class AppDatabase : RoomDatabase() {
 
-    /**
-     * **DAO Accessor** - Provides access to Geofence DAO
-     */
     abstract fun geofenceDao(): GeofenceDao
+    abstract fun userDao(): UserDao  // Now properly configured
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        /**
-         * **getDatabase()** - Returns the singleton instance of AppDatabase.
-         *
-         * - Uses **Double-Checked Locking (DCL)** for **thread safety**.
-         * - If an instance already exists, it **returns the existing instance**.
-         * - Otherwise, it **creates a new database instance**.
-         *
-         * @param context Application context for creating the database.
-         * @return Singleton instance of `AppDatabase`
-         */
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "placelive_database"  // ✅ Database name
-                ).fallbackToDestructiveMigration() // ✅ Automatically handles version updates
+                    "placelive_database"
+                )
+                    .fallbackToDestructiveMigration()
+                    .addCallback(databaseCallback)  // Optional: Add if you need initial setup
                     .build()
                 INSTANCE = instance
                 instance
             }
+        }
+
+        // Optional: Add database population callback if needed
+        private val databaseCallback = object : RoomDatabase.Callback() {
+            // Implement onCreate/onOpen if needed
         }
     }
 }

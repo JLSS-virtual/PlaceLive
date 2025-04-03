@@ -14,8 +14,8 @@ interface PlaceApi {
     suspend fun getPlaceById(): Response<ResponseDto<Place>>
     @POST("places")
     suspend fun addPlace(@Body place: Place): Response<ResponseDto<Place>>
-    @POST("places/{id}")
-    suspend fun addPlace(@Path("id") id : Int , @Body place: Place): Response<ResponseDto<Place>>
+    @PUT("places/{id}")
+    suspend fun updatePlace(@Path("id") id : Int , @Body place: Place): Response<ResponseDto<Place>>
     @DELETE("places/{id}")
     suspend fun deletePlace(@Path("id") id: Int):Response<ResponseDto<String>>
 }

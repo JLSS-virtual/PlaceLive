@@ -96,24 +96,22 @@ dependencies {
     // prefernceces and daatasource
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // WebSocket (OkHttp or Java-WebSocket for STOMP)
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
-// Coroutines (For Async WebSocket Handling)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
 // GSON (For JSON Parsing)
     implementation("com.google.code.gson:gson:2.10.1")
 
+    //**this are websocket dependencies adn no need for now.
 // Java-WebSocket (ONLY if you need STOMP)
-    implementation("org.java-websocket:Java-WebSocket:1.5.3")
-
+   // no need for now:- implementation("org.java-websocket:Java-WebSocket:1.5.3")
+    // WebSocket (OkHttp or Java-WebSocket for STOMP)
+//    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+//    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     // gif and animaation suport.
+    // Coroutines (For Async WebSocket Handling)
+    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    //  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
     implementation("com.airbnb.android:lottie-compose:6.0.0")
-
-
-
 
 }

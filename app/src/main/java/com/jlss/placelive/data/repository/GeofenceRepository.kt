@@ -3,10 +3,11 @@ package com.jlss.placelive.repository
 import com.jlss.placelive.dao.GeofenceDao
 import com.jlss.placelive.model.Geofence
 
+
 class GeofenceRepository(private val geofenceDao: GeofenceDao) {
 
-    suspend fun addGeofence(geofence: Geofence) {
-        geofenceDao.insertGeofence(geofence)
+    suspend fun addGeofence(geofenceDto: Geofence) {
+        geofenceDao.insertGeofence(geofenceDto)
     }
 
     suspend fun getGeofence(id: Long): Geofence? {

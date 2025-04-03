@@ -2,6 +2,7 @@ package com.jlss.placelive.sync
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.jlss.placelive.dao.GeofenceDao
 import com.jlss.placelive.data.api.GeofenceApi
 import com.jlss.placelive.data.api.RetrofitClient
@@ -47,7 +48,7 @@ class SyncManager(private val context: Context, private val geofenceDao: Geofenc
      *
      * **Steps:**
      * 1. **Retrieve last sync time** from Room database.
-     * 2. **Check if 12 hours** have passed since the last sync.
+     * 2. **Check if given hours** have passed since the last sync.
      * 3. **If enough time has passed**, fetch geofences from API.
      * 4. **If API call is successful**, store geofences in the local database.
      * 5. **Update last sync timestamp** in the database.
@@ -59,25 +60,29 @@ class SyncManager(private val context: Context, private val geofenceDao: Geofenc
      * **Runs on:** `Dispatchers.IO` (for efficient background execution).
      */
     suspend fun syncGeofences() {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Main) {
             val lastSyncTime = geofenceDao.getLastSyncTime() ?: 0L
             val currentTime = System.currentTimeMillis()
-            val hoursSinceLastSync = TimeUnit.MILLISECONDS.toHours(currentTime - lastSyncTime)
+          //  val hoursSinceLastSync = TimeUnit.MILLISECONDS.toHours(currentTime - lastSyncTime)
+            val millisSinceLastSync = TimeUnit.MILLISECONDS.toMillis(currentTime-lastSyncTime)
 
-            if (hoursSinceLastSync >= 12) { // ✅ Ensures sync only when needed
+            if (millisSinceLastSync >= 10) { // ✅ Ensures sync only when needed as 10 sec passes.
                 try {
                     val response = apiService.getGeofence()
 
                     if (response.isSuccessful) {
                         response.body()?.data?.let { geofences ->
-                            geofenceDao.insertAllGeofences(geofences) // ✅ Insert new geofences
+                            geofenceDao.insertAllGeofences(geofences) // ✅ Insert new geofences or update if exists.
                             geofenceDao.updateLastSyncTime(currentTime) // ✅ Save new sync time
+                            Toast.makeText(context,"Sync with new data.",Toast.LENGTH_SHORT).show()
                         } ?: Log.e("SyncManager", "Response body is null")
                     } else {
                         Log.e("SyncManager", "API call failed: ${response.errorBody()?.string()}")
+                        Toast.makeText(context,"API call failed for sync.",Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
                     Log.e("SyncManager", "Sync failed: ${e.message}", e)
+                    Toast.makeText(context,"Sync failed:",Toast.LENGTH_SHORT).show()
                 }
             }
         }

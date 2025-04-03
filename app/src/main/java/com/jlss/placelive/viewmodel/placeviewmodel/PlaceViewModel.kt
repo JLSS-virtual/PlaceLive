@@ -1,4 +1,4 @@
-package com.jlss.placelive.viewmodel
+package com.jlss.placelive.viewmodel.placeviewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

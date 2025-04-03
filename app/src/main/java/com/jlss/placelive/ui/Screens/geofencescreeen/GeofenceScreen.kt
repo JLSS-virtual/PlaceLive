@@ -1,5 +1,6 @@
-package com.jlss.placelive.ui.Screens
+package com.jlss.placelive.ui.Screens.geofencescreeen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,25 +12,36 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jlss.placelive.data.api.RetrofitClient
+import com.jlss.placelive.data.repository.DataRepository
 import com.jlss.placelive.database.DatabaseInstance
-import com.jlss.placelive.model.Geofence
+import com.jlss.placelive.model.GeofenceDto
 import com.jlss.placelive.repository.GeofenceRepository
 import com.jlss.placelive.utility.NetworkUtil
-import com.jlss.placelive.viewmodel.GeofenceViewModel
+import com.jlss.placelive.viewmodel.geofenceviewmodel.GeofenceViewModel
 
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun GeofenceScreen(placeId: Long) {
+fun GeofenceScreen(
+    placeId: Long,
+    navigateToGeofenceDetail: (Long) -> Unit
+) {
     val context = LocalContext.current
     val retrofitClient = remember { RetrofitClient() }
     val networkUtil = remember { NetworkUtil(context) }
+    val geofenceDao = DatabaseInstance.getDatabase(context).geofenceDao()
+    // Create a DataRepository instance for full sync/update operations.
+    val dataRepository = DataRepository(
+        retrofitClient.createGeofenceApi(),
+        geofenceDao
+    )
     val viewModel: GeofenceViewModel = viewModel(
         factory = GeofenceViewModel.Factory(
             retrofitClient.createGeofenceApi(),
             GeofenceRepository(DatabaseInstance.getDatabase(context).geofenceDao()),
-            networkUtil
+            networkUtil,
+            dataRepository
         )
     )
 
@@ -54,7 +66,22 @@ fun GeofenceScreen(placeId: Long) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Input Fields
+        // Heading for the input section with background and padding
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "Add New Geofences to this Place $placeId",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Input Fields for Geofence Data
         GeofenceInputForm(
             latitude = latitude,
             onLatitudeChange = { latitude = it },
@@ -69,6 +96,7 @@ fun GeofenceScreen(placeId: Long) {
             notificationMessage = notificationMessage,
             onMessageChange = { notificationMessage = it }
         )
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Add Button
         Button(
@@ -82,9 +110,10 @@ fun GeofenceScreen(placeId: Long) {
                     notificationMessage,
                     placeId
                 )
-
                 coroutineScope.launch {
-                    viewModel.addGeofence(newGeofence,context)
+                    if (newGeofence != null) {
+                        viewModel.addGeofence(newGeofence, context)
+                    }
                     // Reset form after successful addition
                     resetForm(
                         { latitude = it },
@@ -99,22 +128,37 @@ fun GeofenceScreen(placeId: Long) {
                 }
             },
             modifier = Modifier
-                .padding(top = 8.dp)
                 .align(Alignment.CenterHorizontally)
+                .padding(top = 8.dp)
         ) {
             Text("Create Geofence")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Heading for the list section
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "Live Geofences on this Place",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Geofences List
         GeofenceList(
-            geofences = geofences,
-            onDelete = { viewModel.deleteGeofence(it,context) }
+            geofenceDtos = geofences,
+            onDelete = { viewModel.deleteGeofence(it, context) } ,
+                    navigateToGeofenceDetail=navigateToGeofenceDetail
         )
     }
 }
-
-// Rest of the composable functions remain the same as in your original code
-// (GeofenceInputForm, GeofenceList, GeofenceListItem, createGeofence, resetForm)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,50 +177,48 @@ private fun GeofenceInputForm(
     onMessageChange: (String) -> Unit
 ) {
     Column {
-        // Latitude Input
         OutlinedTextField(
             value = latitude,
             onValueChange = onLatitudeChange,
             label = { Text("Latitude") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        // Longitude Input
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = longitude,
             onValueChange = onLongitudeChange,
             label = { Text("Longitude") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        // Radius Input
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = radius,
             onValueChange = onRadiusChange,
             label = { Text("Radius (meters)") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        // Active Status Toggle
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Checkbox(
                 checked = isActive,
                 onCheckedChange = onActiveChange
             )
             Text("Active Geofence")
         }
-
-        // Notifications Toggle
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Checkbox(
                 checked = notificationsEnabled,
                 onCheckedChange = onNotificationsChange
             )
             Text("Enable Notifications")
         }
-
-        // Notification Message
         if (notificationsEnabled) {
+            Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = notificationMessage,
                 onValueChange = onMessageChange,
@@ -188,42 +230,83 @@ private fun GeofenceInputForm(
 }
 
 @Composable
-private fun GeofenceList(geofences: List<Geofence>, onDelete: (Long) -> Unit) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(geofences) { geofence ->
-            GeofenceListItem(geofence, onDelete)
+private fun GeofenceList(geofenceDtos: List<GeofenceDto>, onDelete: (Long) -> Unit,
+                         navigateToGeofenceDetail: (Long) -> Unit ) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 8.dp)
+    ) {
+        items(geofenceDtos) { geofence ->
+            GeofenceListItem(geofence, onDelete,navigateToGeofenceDetail)
         }
     }
 }
 
 @Composable
-private fun GeofenceListItem(geofence: Geofence, onDelete: (Long) -> Unit) {
+private fun GeofenceListItem(geofenceDto: GeofenceDto, onDelete: (Long) -> Unit,
+                             navigateToGeofenceDetail: (Long) -> Unit) {
     Card(
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp, horizontal = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Lat: ${geofence.latitude}, Lon: ${geofence.longitude}")
-            Text("Radius: ${geofence.radius}m")
-            Text("Active: ${if (geofence.isActive) "Yes" else "No"}")
-            Text("Notifications: ${if (geofence.notificationsEnabled) "Enabled" else "Disabled"}")
-            geofence.notificationMessage?.let {
-                Text("Message: $it")
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Lat: ${geofenceDto.latitude}, Lon: ${geofenceDto.longitude}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Radius: ${geofenceDto.radius}m",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Status: ${if (geofenceDto.isActive) "Active" else "Inactive"}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Notifications: ${if (geofenceDto.notificationsEnabled) "Enabled" else "Disabled"}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            geofenceDto.notificationMessage?.let {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Message: $it",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            // Subheading for the card's action
+            Text(
+                text = "Manage this geofence",
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
             Button(
-                onClick = { onDelete(geofence.geofenceId) },
+                onClick = { onDelete(geofenceDto.geofenceId) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
-                )
+                ),
+                modifier = Modifier.align(Alignment.End)
             ) {
                 Text("Delete")
+            }
+            Button(
+                onClick = { navigateToGeofenceDetail(geofenceDto.geofenceId) }
+            ) {
+                Text("View Details")
             }
         }
     }
 }
-
-
 
 private fun createGeofence(
     latitude: String,
@@ -233,16 +316,18 @@ private fun createGeofence(
     notificationsEnabled: Boolean,
     notificationMessage: String,
     placeId: Long
-): Geofence {
-    return Geofence(
+): GeofenceDto? {
+    return notificationMessage.ifEmpty { null }?.let {
+        GeofenceDto(
         latitude = latitude.toDoubleOrNull() ?: 0.0,
         longitude = longitude.toDoubleOrNull() ?: 0.0,
         radius = radius.toDoubleOrNull() ?: 0.0,
         isActive = isActive,
         notificationsEnabled = notificationsEnabled,
-        notificationMessage = notificationMessage.ifEmpty { null },
+        notificationMessage = it,
         placeId = placeId
     )
+    }
 }
 
 private fun resetForm(

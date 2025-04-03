@@ -1,4 +1,4 @@
-package com.jlss.placelive.ui.Screens
+package com.jlss.placelive.ui.Screens.BarsOrTabs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,17 +14,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.placelive.ui.navigation.Screen
+import com.jlss.placelive.ui.Screens.placescreen.PlaceListScreen
+import com.jlss.placelive.ui.Screens.placescreen.PlaceScreen
 
 
-// MainPlaceScreen.kt
+// BarPlaceScreen.kt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainTabsScreen(
-    userId: Long,
     navController: NavController
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Places", "Geofences")
+    val tabs = listOf("Places", "All Places")
 
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = selectedTab) {
@@ -39,14 +40,14 @@ fun MainTabsScreen(
 
         when (selectedTab) {
             0 -> PlaceScreen(
-                userId = userId,
-                navigateToGeofenceScreen = { id ->
-                    navController.navigate(Screen.GeofenceScreen.createRoute(id))
+                navigateToPlaceListScreen = { id ->
+                    navController.navigate(Screen.PlaceListScreen.createRoute(id))
                 }
             )
-            1 -> GeofenceListScreen(
-                navigateToGeofenceDetail = { id ->
-                    navController.navigate(Screen.GeofenceDetailScreen.createRoute(id))
+            1 -> PlaceListScreen(
+                navigateBack = { navController.popBackStack() }, // Correct back navigation
+                navigateToGeofenceScreen = { id ->
+                    navController.navigate(Screen.GeofenceScreen.createRoute(id))
                 }
             )
         }

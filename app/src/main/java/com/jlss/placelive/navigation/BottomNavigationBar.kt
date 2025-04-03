@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Place
 
 @Composable
@@ -23,7 +24,9 @@ fun BottomNavigationBar(navController: NavHostController) {
         Screen.MainPlace to Icons.Filled.Place,
         Screen.Messages to Icons.Filled.Message,
 //        Screen.Events to Icons.Filled.Event,
-        Screen.Profile to Icons.Filled.Person
+
+        Screen.Profile to Icons.Filled.Person,
+        Screen.LogOutScreen to Icons.Filled.Logout
     )
 
     // Observe the current route

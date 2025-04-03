@@ -1,28 +1,32 @@
-package com.jlss.placelive.ui.Screens
+package com.jlss.placelive.ui.Screens.placescreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jlss.placelive.dao.UserDao
 import com.jlss.placelive.data.api.RetrofitClient
+import com.jlss.placelive.database.DatabaseInstance
 import com.jlss.placelive.model.Place
-import com.jlss.placelive.viewmodel.PlaceViewModel
+import com.jlss.placelive.utility.UserPreferences.getUserIdFromPreferences
+import com.jlss.placelive.viewmodel.placeviewmodel.PlaceViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PlaceScreen(
-    userId: Long,
-    navigateToGeofenceScreen: (Long) -> Unit // Lambda for navigation
+    navigateToPlaceListScreen: (Long) -> Unit
 ) {
+    val context = LocalContext.current
     val retrofitClient = remember { RetrofitClient() }
+    val userDao = DatabaseInstance.getDatabase(context).userDao()
     val viewModel: PlaceViewModel =
         viewModel(factory = PlaceViewModel.Factory(retrofitClient.createPlaceApi()))
 
@@ -42,11 +46,26 @@ fun PlaceScreen(
     var tags by remember { mutableStateOf(listOf<String>()) }
     var newTag by remember { mutableStateOf("") }
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Headline for input section
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.secondaryContainer)// secondaryContainer
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "Add new places on PlaceLive dear: //--name will come from room db later--//. And then live them ",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = 5.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
         // Place Name Input
         OutlinedTextField(
             value = placeName,
@@ -127,21 +146,31 @@ fun PlaceScreen(
                     )
                 }
             }
+
         }
+        // Headline for input section
+        Text(
+            text = "Click on the Add button to add place on PlaceLive. Then you will able to live them by adding geofence 🛡️",
+            modifier = Modifier.padding(bottom = 1.dp)
+        )
 
         // Add Button
         Button(
             onClick = {
-                val newPlace = Place(
-                    name = placeName,
-                    description = description,
-                    type = selectedType,
-                    tags = tags,
-                    ownerId = userId
-                )
+                val userId = getUserIdFromPreferences(context) // Get stored user ID
+
+                val newPlace = userId?.let {
+                    Place(
+                        name = placeName,
+                        description = description,
+                        type = selectedType,
+                        tags = tags,
+                        ownerId = it // userId is already Long
+                    )
+                }
 
                 coroutineScope.launch {
-                    val placeId = viewModel.addPlace(newPlace) // Get generated ID
+                    val placeId = newPlace?.let { viewModel.addPlace(it) } // Get generated ID
 
                     // Only clear fields if successful
                     if (placeId != null) {
@@ -154,40 +183,6 @@ fun PlaceScreen(
             }
         ) {
             Text("Add Place")
-        }
-
-        // List of Places
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(placesList) { place ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Name: ${place.name}")
-                        Text(text = "id: ${place.id}")
-                        Text(text = "Description: ${place.description}")
-                        place.type?.let {
-                            Text(text = "Type: $it")
-                        }
-                        if (place.tags.isNotEmpty()) {
-                            Text(text = "Tags: ${place.tags.joinToString(", ")}")
-                        }
-                        // In PlaceScreen.kt
-                        Button(
-                            onClick = {
-                                place.id?.let {
-                                    println("Navigating with placeId: $it")
-                                    navigateToGeofenceScreen(it)
-                                } ?: println("Error: Place ID is null")
-                            }
-                        ) {
-                            Text("Add Geofence")
-                        }
-                    }
-                }
-            }
         }
     }
 }
