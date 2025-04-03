@@ -1,6 +1,8 @@
 package com.jlss.placelive.ui.Components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brightness6
+import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,37 +41,10 @@ fun CustomTopBar(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // App Logo
-                Image(
-                    painter = painterResource(id = R.drawable.icon4), // Replace with your logo resource
-                    contentDescription = "App Logo",
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                // App Name
-                Text(
-                    text = "PlaceLive",
-                    fontSize = 20.sp
-                )
+                GradientAppName()
             }
         },
         actions = {
-            // Theme Toggle Icon (Moved here ✅)
-            IconButton(onClick = onToggleTheme) {
-                Icon(
-                    imageVector = Icons.Default.Brightness6,
-                    contentDescription = "Toggle Theme"
-                )
-            }
-
-            // Settings Icon
-            IconButton(onClick = onSettingsClick) {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Settings"
-                )
-            }
-
             // Search Icon
             IconButton(onClick = onSearchClick) {
                 Icon(
@@ -75,17 +52,15 @@ fun CustomTopBar(
                     contentDescription = "Search"
                 )
             }
+            // Theme Toggle Icon (Moved here ✅)
+//            IconButton(onClick = onToggleTheme) {
+//                Icon(
+//                    imageVector = Icons.Filled.InvertColors, // Better represents theme switching
+//                    contentDescription = "Toggle Theme"
+//                )
+//            }
 
-            // Profile Icon
-            IconButton(onClick = onProfileClick) {
-                Image(
-                    painter = painterResource(id = R.drawable.user1), // Replace with your profile resource
-                    contentDescription = "Profile",
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                )
-            }
+            HeartIconButton(onClick = onProfileClick)
         }
     )
 }
