@@ -1,5 +1,4 @@
 # PlaceLive
-![Visitor Count](https://komarev.com/ghpvc/?username=jeetsolanki&repo=Placelive&style=flat-square&color=blue)
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
   <img src="https://github.com/user-attachments/assets/aad14b50-0f25-4d48-85e8-725505a09e03" width="200"/>
   <img src="https://github.com/user-attachments/assets/fb0334bf-f921-43a4-b889-61a7a76247f0" width="200"/>
@@ -145,3 +144,4 @@ PlaceLive uniquely combines:
 The vision extends beyond app success — to own the future of place-intelligence data worldwide.
 
 ---
+![Visitor Count](https://komarev.com/ghpvc/?username=jeetsolanki&repo=Placelive&style=flat-square&color=blue)
